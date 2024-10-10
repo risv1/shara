@@ -1,8 +1,9 @@
-use std::convert::Infallible;
+use std::{convert::Infallible, sync::Arc};
 use hyper::{Body, Client, Request, Response, Uri};
+use crate::load::LoadBalancer;
 
-pub async fn reverse_proxy(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    let backend_url = "http://localhost:8000";
+pub async fn reverse_proxy(req: Request<Body>, lb: Arc<LoadBalancer>) -> Result<Response<Body>, Infallible> {
+    let backend_url = lb.next_backend();
 
     let client = Client::new();
 
