@@ -1,11 +1,14 @@
 mod load;
 mod proxy;
+mod cache;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use load::LoadBalancer;
 use proxy::reverse_proxy;
+use cache::Cache;
 use std::convert::Infallible;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() {
@@ -17,12 +20,14 @@ async fn main() {
     ];
 
     let load_balancer = LoadBalancer::new(backends);
+    let cache = Cache::new(Duration::from_secs(30));
 
     let make_svc = make_service_fn(move |_conn| {
         let lb = load_balancer.clone();
+        let cache_clone = cache.clone();
         async move {
             Ok::<_, Infallible>(service_fn(move |req| {
-                proxy::reverse_proxy(req, lb.clone())
+                reverse_proxy(req, lb.clone(), cache_clone.clone())
             }))
         }
     });

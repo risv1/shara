@@ -13,6 +13,16 @@ app.get("/api", (req, res) => {
     res.send("API 0")
 })
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+app.get("/api/test", async (req, res) => {
+    await delay(1000)
+    res.send({
+        message: "Test response",
+        timestamp: new Date().toISOString()
+    })
+})
+
 app.listen(8000, () => {
     console.log("Server is running on port 8000")
 })
