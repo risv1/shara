@@ -13,6 +13,7 @@ use cache::Cache;
 use router::Router;
 use std::convert::Infallible;
 use std::net::TcpListener;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio_rustls::TlsAcceptor;
 
@@ -42,14 +43,14 @@ async fn main() {
     // and spawn a new task for each connection, but not doing yet maybe later.
 
     let make_svc = make_service_fn(move |_conn| {
-        let lb = load_balancer.clone();
-        let cache_clone = cache.clone();
+        let lb = Arc::clone(&load_balancer);
+        let cache_clone = Arc::clone(&cache);
         let router_clone = router.clone();
         async move {
             Ok::<_, Infallible>(service_fn(move |req| {
-                reverse_proxy(req, lb.clone(), cache_clone.clone(), router_clone.clone())
+                reverse_proxy(req, Arc::clone(&lb), Arc::clone(&cache_clone), router_clone.clone())
             }))
-        } // todo: try refs here too much cloning :(
+        } // todo: modify router to use mutex locks 
     });
 
     let server = Server::bind(&addr).serve(make_svc);
