@@ -1,14 +1,18 @@
 mod load;
 mod proxy;
 mod cache;
+mod ssl;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use load::LoadBalancer;
 use proxy::reverse_proxy;
+use ssl::load_ssl_config;
 use cache::Cache;
 use std::convert::Infallible;
+use std::net::TcpListener;
 use std::time::Duration;
+use tokio_rustls::TlsAcceptor;
 
 #[tokio::main]
 async fn main() {
@@ -21,6 +25,16 @@ async fn main() {
 
     let load_balancer = LoadBalancer::new(backends);
     let cache = Cache::new(Duration::from_secs(30));
+
+    let tls_config = load_ssl_config("certs/cert.pem", "certs/key.pem");
+
+    let listen_at_port = "127.0.0.1:8443";
+    let https_listener = TcpListener::bind(listen_at_port).unwrap();
+
+    let tls_acceptor = TlsAcceptor::from(tls_config);
+
+    // todo: now here, I would make a loop and start listening for HTTPS connections
+    // and spawn a new task for each connection, but not doing yet maybe later.
 
     let make_svc = make_service_fn(move |_conn| {
         let lb = load_balancer.clone();

@@ -6,11 +6,11 @@ const app = express()
 app.use(cors())
 
 app.get("/", (req, res) => {
-    res.send("Hello World 0")
+    res.send("Hello World 1")
 })
 
 app.get("/api", (req, res) => {
-    res.send("API 0")
+    res.send("API 1")
 })
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
