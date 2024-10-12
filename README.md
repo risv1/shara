@@ -1,6 +1,6 @@
 # Shara
 
-**Shara**: A fast, fluid web server for seamless connectivity.
+**Shara**: A fast, fluid web server for seamless connectivity. Mainly made to work with rust a little.
 
 ## Features
 
@@ -9,6 +9,9 @@
 - **Caching**: Stores frequently accessed responses to enhance performance.
 - **SSL Termination**: Handles secure HTTPS connections with ease.
 - **Request Routing**: Dynamically routes requests based on configurable rules.
+
+### [WIP]
+
 - **Static File Serving**: Serves static content directly from the server.
 - **Rate Limiting**: Controls the number of requests from clients.
 - **Logging and Monitoring**: Tracks request/response metrics for performance insights.

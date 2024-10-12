@@ -2,6 +2,7 @@ mod load;
 mod proxy;
 mod cache;
 mod ssl;
+mod router;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
@@ -9,6 +10,7 @@ use load::LoadBalancer;
 use proxy::reverse_proxy;
 use ssl::load_ssl_config;
 use cache::Cache;
+use router::Router;
 use std::convert::Infallible;
 use std::net::TcpListener;
 use std::time::Duration;
@@ -26,6 +28,9 @@ async fn main() {
     let load_balancer = LoadBalancer::new(backends);
     let cache = Cache::new(Duration::from_secs(30));
 
+    let mut router = Router::new();
+    router.add_route("/api/test", "http://localhost:8000");
+
     let tls_config = load_ssl_config("certs/cert.pem", "certs/key.pem");
 
     let listen_at_port = "127.0.0.1:8443";
@@ -39,11 +44,12 @@ async fn main() {
     let make_svc = make_service_fn(move |_conn| {
         let lb = load_balancer.clone();
         let cache_clone = cache.clone();
+        let router_clone = router.clone();
         async move {
             Ok::<_, Infallible>(service_fn(move |req| {
-                reverse_proxy(req, lb.clone(), cache_clone.clone())
+                reverse_proxy(req, lb.clone(), cache_clone.clone(), router_clone.clone())
             }))
-        }
+        } // todo: try refs here too much cloning :(
     });
 
     let server = Server::bind(&addr).serve(make_svc);

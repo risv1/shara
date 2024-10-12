@@ -2,9 +2,17 @@ use std::{convert::Infallible, sync::Arc};
 use hyper::{Body, Client, Request, Response, Uri};
 use crate::load::LoadBalancer;
 use crate::cache::Cache;
+use crate::router::Router;
 
-pub async fn reverse_proxy(req: Request<Body>, lb: Arc<LoadBalancer>, cache: Arc<Cache>) -> Result<Response<Body>, Infallible> {
-    let backend_url = lb.next_backend();
+pub async fn reverse_proxy(req: Request<Body>, lb: Arc<LoadBalancer>, cache: Arc<Cache>, router: Router) -> Result<Response<Body>, Infallible> {
+    
+    // exp: here basically I've added the router to fallback to the load balancer if no route matches
+    let backend_url = if let Some(routed_url) = router.route(&req) {
+        routed_url.clone()
+    } else {
+        lb.next_backend()
+    };
+
     let full_url = format!("{}{}", backend_url, req.uri());
 
     if let Some(cached_body) = cache.get(&full_url) {

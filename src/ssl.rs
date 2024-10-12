@@ -5,7 +5,7 @@ use std::io::BufReader;
 use std::sync::Arc;
 
 
-// just used openssl to generate a pair of pem files cert and key for testing
+// exp: just used openssl to generate a pair of pem files cert and key for testing
 pub fn load_ssl_config(cert_path: &str, key_path: &str) -> Arc<ServerConfig> {
     let certs = load_certs(cert_path);
     let key = load_key(key_path);
